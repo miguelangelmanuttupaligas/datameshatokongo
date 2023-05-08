@@ -1,0 +1,60 @@
+#!/bin/bash
+
+az login
+
+# Grupo de recursos
+az group create \
+    --name dominioclientes \
+    --location eastus
+                
+# Data lake - Almacenamiento
+az storage account create \
+    --resource-group dominioclientes \
+    --name rawzonedominioclientes \
+    --location eastus \
+    --kind StorageV2 \
+    --sku Standard_LRS \
+    --access-tier hot \
+    --enable-hierarchical-namespace true \
+    --allow-blob-public-access false
+
+# Cuenta de almacenamiento
+az storage account create \
+    --resource-group dominioclientes \
+    --name filezonedominioclientes \
+    --location eastus \
+    --kind StorageV2 \
+    --sku Standard_LRS 
+
+# File storage
+az storage share-rm create \
+    --resource-group dominioclientes \
+    --storage-account filezonedominioclientes \
+    --name filehomeusuario1 \
+    --quota 10 \
+    --enabled-protocols SMB
+
+
+# Grupo de recursos temporal
+az group create --name tmprgclusterclientes1 --location eastus
+# Virtual machine temporal (Cluster)
+# Buscar la autenticacion por contraseña
+# Activar puerto 445
+# azureuser
+# mi2g284glsdkjASD
+az vm create \
+  --resource-group tmprgclusterclientes1 \
+  --name  clusterclientes1\
+  --image debian \
+  --admin-username azureuser \
+  --generate-ssh-keys \
+  --public-ip-sku Standard
+
+# az vm open-port --port 80 --resource-group tmprgclusterclientes1 --name clusterclientes1
+
+# sudo apt install cifs-utils
+# sudo apt install netcad
+# sudo apt install ufw
+# sudo ufw allow 22
+# sudo ufw allow 445
+# sudo ufw enable
